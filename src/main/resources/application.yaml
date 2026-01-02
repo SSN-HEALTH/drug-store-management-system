@@ -5,7 +5,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/drug_store_management?createDatabaseIfNotExist=true
     username: root
-    password: Vijay@09
+    password: database
 
   jpa:
     show-sql: true
