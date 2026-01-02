@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: drug-store-management
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/drug_store_management?createDatabaseIfNotExist=true
+    username: root
+    password: Vijay@09
+
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+    database-platform: org.hibernate.dialect.MySQLDialect
+    properties:
+      hibernate:
+        format_sql: true
