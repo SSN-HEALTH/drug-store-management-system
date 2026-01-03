@@ -1,6 +1,7 @@
 spring:
   application:
     name: drug-store-management
+
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/drug_store_management?createDatabaseIfNotExist=true
