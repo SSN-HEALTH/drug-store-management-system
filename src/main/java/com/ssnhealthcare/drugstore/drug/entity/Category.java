@@ -17,4 +17,8 @@ public class Category {
     @NotBlank
     @Column(name = "name", nullable = false, unique = true, length = 50)
     private String name;
+
+    @NotBlank
+    @Column(name = "description", nullable = false, unique = true, length = 500)
+    private String description;
 }
