@@ -5,6 +5,8 @@ import com.ssnhealthcare.drugstore.exception.BusinessException;
 import com.ssnhealthcare.drugstore.exception.ResourceNotFoundException;
 import com.ssnhealthcare.drugstore.drug.entity.Drug;
 import com.ssnhealthcare.drugstore.drug.repository.DrugRepository;
+import com.ssnhealthcare.drugstore.inventory.entity.Inventory;
+import com.ssnhealthcare.drugstore.inventory.repository.InventoryRepository;
 import com.ssnhealthcare.drugstore.order.dto.DtoRequest.OrderRequestDto;
 import com.ssnhealthcare.drugstore.order.dto.DtoResponse.OrderItemResponseDto;
 import com.ssnhealthcare.drugstore.order.dto.DtoResponse.OrderResponseDto;
@@ -28,38 +30,51 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class OrderServiceImpl implements OrderService
-{
+public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
     private final DrugRepository drugRepository;
+    private final InventoryRepository inventoryRepository;
 
     private static final int PAGE_SIZE = 10;
 
     // Create Order (POS / Prescription)
     @Override
-    public OrderResponseDto createOrder(OrderRequestDto dto)
-    {
+    public OrderResponseDto createOrder(OrderRequestDto dto) {
 
-        User user = userRepository.findById(dto.getProcessedByUserId()).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        User user = userRepository.findById(dto.getProcessedByUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Order order = new Order();
         order.setOrderDate(LocalDateTime.now());
         order.setStatus(OrderStatus.CREATED);
         order.setProcessedBy(user);
 
-        List<OrderItem> items = dto.getItems().stream().map(i ->
-        {
-            Drug drug = drugRepository.findById(i.getDrugId()).orElseThrow(() -> new ResourceNotFoundException("Drug not found"));
+        // Map request items to OrderItem with inventory check
+        List<OrderItem> items = dto.getItems().stream().map(i -> {
+            Drug drug = drugRepository.findById(i.getDrugId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Drug not found"));
 
-            if (drug.getStockQuantity() < i.getQuantity())
-            {
+            // Fetch inventory
+            Inventory inventory = inventoryRepository.findByDrug_DrugId(drug.getDrugId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Inventory not found for drug: " + drug.getDrugName()));
+
+            // Expiry validation
+            if (inventory.getExpiryDate().isBefore(LocalDate.now())) {
+                throw new BusinessException("Drug expired: " + drug.getDrugName());
+            }
+
+            // Stock validation
+            if (inventory.getQuantity() < i.getQuantity()) {
                 throw new BusinessException("Insufficient stock for drug: " + drug.getDrugName());
             }
 
-            drug.setStockQuantity(drug.getStockQuantity() - i.getQuantity());
+            // Deduct stock
+            inventory.setQuantity(inventory.getQuantity() - i.getQuantity());
+            inventoryRepository.save(inventory);
 
+            // Create OrderItem
             OrderItem item = new OrderItem();
             item.setOrder(order);
             item.setDrug(drug);
@@ -70,8 +85,9 @@ public class OrderServiceImpl implements OrderService
 
         order.setItems(items);
 
+        // Calculate total
         BigDecimal total = items.stream()
-                .map(i -> i.getPrice().multiply(BigDecimal.valueOf(i.getQuantity())))
+                .map(it -> it.getPrice().multiply(BigDecimal.valueOf(it.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         order.setTotalAmount(total);
@@ -82,34 +98,30 @@ public class OrderServiceImpl implements OrderService
     // Get Order by ID
     @Override
     public OrderResponseDto getOrderById(Long orderId) {
-        return mapToResponse(
-                orderRepository.findById(orderId).orElseThrow(() -> new ResourceNotFoundException("Order not found")));
+        return mapToResponse(orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found")));
     }
+
     // Get All Orders (Dashboard)
     @Override
-    public Page<OrderResponseDto> getAllOrders(int page,int size) {
-        return orderRepository.findAll(PageRequest.of(page, size))
-                .map(this::mapToResponse);
+    public Page<OrderResponseDto> getAllOrders(int page, int size) {
+        return orderRepository.findAll(PageRequest.of(page, size)).map(this::mapToResponse);
     }
-
-
-
 
     // Get Orders by Status
     @Override
-    public Page<OrderResponseDto> getOrderByStatus(OrderStatus status)
-    {
-        return orderRepository.findByStatus(status, PageRequest.of(0, PAGE_SIZE)).map(this::mapToResponse);
+    public Page<OrderResponseDto> getOrderByStatus(OrderStatus status) {
+        return orderRepository.findByStatus(status, PageRequest.of(0, PAGE_SIZE))
+                .map(this::mapToResponse);
     }
 
     // Update Order Status
     @Override
     public OrderResponseDto updateOrderByStatus(Long orderId, OrderStatus status) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
 
-        Order order = orderRepository.findById(orderId).orElseThrow(() -> new ResourceNotFoundException("Order not found"));
-
-        if (order.getStatus() == OrderStatus.CANCELLED)
-        {
+        if (order.getStatus() == OrderStatus.CANCELLED) {
             throw new BusinessException("Cancelled order cannot be updated");
         }
 
@@ -119,45 +131,47 @@ public class OrderServiceImpl implements OrderService
 
     // Orders by Date Range (Reports)
     @Override
-    public Page<OrderResponseDto> getOrdersByDateRange(LocalDate fromDate, LocalDate toDate)
-    {
-
+    public Page<OrderResponseDto> getOrdersByDateRange(LocalDate fromDate, LocalDate toDate) {
         return orderRepository.findByOrderDateBetween(
                         fromDate.atStartOfDay(),
                         toDate.atTime(23, 59, 59),
-                        PageRequest.of(0, PAGE_SIZE)).map(this::mapToResponse);
+                        PageRequest.of(0, PAGE_SIZE))
+                .map(this::mapToResponse);
     }
 
-
-// Orders Processed by User
+    // Orders Processed by User
     @Override
     public Page<OrderResponseDto> getOrderByProcessedUser(Long userId) {
-
-        return orderRepository.findByProcessedBy_UserId(userId, PageRequest.of(0, PAGE_SIZE)).map(this::mapToResponse);
+        return orderRepository.findByProcessedBy_UserId(userId, PageRequest.of(0, PAGE_SIZE))
+                .map(this::mapToResponse);
     }
-
 
     // Cancel Order
     @Override
-    public OrderResponseDto cancelOrder(Long orderId)
-    {
+    public OrderResponseDto cancelOrder(Long orderId) {
 
-        Order order = orderRepository.findById(orderId).orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
 
-        if (order.getStatus() == OrderStatus.COMPLETED)
-        {
+        if (order.getStatus() == OrderStatus.COMPLETED) {
             throw new BusinessException("Completed order cannot be cancelled");
         }
 
+        // Restore inventory if needed
+        order.getItems().forEach(item -> {
+            Inventory inventory = inventoryRepository.findByDrug_DrugId(item.getDrug().getDrugId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Inventory not found for drug: " + item.getDrug().getDrugName()));
+            inventory.setQuantity(inventory.getQuantity() + item.getQuantity());
+            inventoryRepository.save(inventory);
+        });
+
         order.setStatus(OrderStatus.CANCELLED);
+
         return mapToResponse(orderRepository.save(order));
     }
 
-
-
-    private OrderResponseDto mapToResponse(Order order)
-    {
-
+    // Map Order entity to Response DTO
+    private OrderResponseDto mapToResponse(Order order) {
         OrderResponseDto dto = new OrderResponseDto();
         dto.setOrderId(order.getOrderId());
         dto.setOrderDate(order.getOrderDate());
@@ -165,8 +179,7 @@ public class OrderServiceImpl implements OrderService
         dto.setStatus(order.getStatus());
         dto.setProcessedBy(order.getProcessedBy().getUsername());
 
-        List<OrderItemResponseDto> items = order.getItems().stream().map(i ->
-        {
+        List<OrderItemResponseDto> items = order.getItems().stream().map(i -> {
             OrderItemResponseDto itemDto = new OrderItemResponseDto();
             itemDto.setDrugId(i.getDrug().getDrugId());
             itemDto.setDrugName(i.getDrug().getDrugName());

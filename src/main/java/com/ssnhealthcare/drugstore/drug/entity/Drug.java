@@ -33,17 +33,6 @@ public class Drug {
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
-    @Column(name = "stock_quantity", nullable = false)
-    private Integer stockQuantity;
 
-    @Column(name = "expiry_date", nullable = false)
-    private LocalDate expiryDate;
 
-    public Integer getStockQuantity() {
-        return stockQuantity;
-    }
-
-    public void setStockQuantity(int i) {
-        this.stockQuantity = i;
-    }
 }

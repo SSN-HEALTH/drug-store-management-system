@@ -20,16 +20,14 @@ public interface DrugRepository extends JpaRepository<Drug, Long>
     @Query("""
     SELECT new com.ssnhealthcare.drugstore.report.Dto.StockReportDto(
         d.drugName,
-        d.stockQuantity,
+        COALESCE(SUM(i.quantity), 0L),
         COALESCE(SUM(oi.quantity), 0L)
     )
     FROM Drug d
-    LEFT JOIN OrderItem oi
-        ON oi.drug = d
-       AND oi.order.status =
-           com.ssnhealthcare.drugstore.common.enums.OrderStatus.COMPLETED
-    GROUP BY d.drugName, d.stockQuantity
-    ORDER BY d.stockQuantity ASC
+    LEFT JOIN Inventory i ON i.drug = d
+    LEFT JOIN OrderItem oi ON oi.drug = d AND oi.order.status = com.ssnhealthcare.drugstore.common.enums.OrderStatus.COMPLETED
+    GROUP BY d.drugName
+    ORDER BY COALESCE(SUM(i.quantity), 0L) ASC
 """)
     List<StockReportDto> getStockReport();
 

@@ -25,7 +25,7 @@ public class Sale {
     private LocalDateTime saleDate;
 
     @Column(name = "total_amount", nullable = false)
-    private Double totalAmount;
+    private BigDecimal totalAmount;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
@@ -45,7 +45,5 @@ public class Sale {
     )
     private List<SaleItem> items;
 
-    public void setTotalAmount(BigDecimal totalAmount) {
 
-    }
 }

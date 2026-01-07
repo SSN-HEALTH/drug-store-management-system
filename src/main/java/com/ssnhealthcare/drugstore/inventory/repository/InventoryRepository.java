@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 
+
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -20,4 +21,6 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
     List<Inventory> findByQuantityLessThanEqual(Integer reorderLevel);
 
     List<Inventory> findByExpiryDateBefore(LocalDate date);
+
+    Optional<Inventory> findByDrug_DrugId(Long drugId);
 }

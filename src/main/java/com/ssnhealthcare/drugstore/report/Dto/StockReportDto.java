@@ -6,15 +6,15 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-
 @Getter
 public class StockReportDto {
 
     private final String drugName;
-    private final Integer availableStock;
+    private final Long availableStock;  // changed from Integer to Long
     private final Long totalSoldQuantity;
+
     public StockReportDto(String drugName,
-                          Integer availableStock,
+                          Long availableStock,
                           Long totalSoldQuantity) {
         this.drugName = drugName;
         this.availableStock = availableStock;

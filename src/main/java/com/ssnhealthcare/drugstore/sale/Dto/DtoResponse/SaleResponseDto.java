@@ -3,6 +3,7 @@ package com.ssnhealthcare.drugstore.sale.Dto.DtoResponse;
 import com.ssnhealthcare.drugstore.sale.entity.Sale;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -11,7 +12,7 @@ public class SaleResponseDto {
 
     private Long saleId;
     private LocalDateTime saleDate;
-    private Double totalAmount;
+    private BigDecimal totalAmount;
     private String orderStatus;
     private String processedBy;
     private String paymentMode;
