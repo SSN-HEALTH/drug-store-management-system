@@ -1,4 +1,81 @@
 package com.ssnhealthcare.drugstore.user.controller;
 
+import com.ssnhealthcare.drugstore.user.dto.request.ChangePasswordRequestDTO;
+import com.ssnhealthcare.drugstore.user.dto.request.UserCreateRequestDTO;
+import com.ssnhealthcare.drugstore.user.dto.request.UserUpdateRequestDTO;
+import com.ssnhealthcare.drugstore.user.dto.responce.UserCreateResponseDTO;
+import com.ssnhealthcare.drugstore.user.dto.responce.UserGetResponse;
+import com.ssnhealthcare.drugstore.user.dto.responce.UserStatusResponseDTO;
+import com.ssnhealthcare.drugstore.user.service.UserService;
+import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@AllArgsConstructor
+@RequestMapping("/user")
 public class UserController {
+
+    private final UserService userService;
+
+    @PostMapping("/create")
+    public ResponseEntity<UserCreateResponseDTO> createUser(
+            @Valid @RequestBody UserCreateRequestDTO dto) {
+
+        return new ResponseEntity<>(
+                userService.createUser(dto),
+                HttpStatus.CREATED
+        );
+    }
+
+    @PutMapping("/changePassword")
+    public ResponseEntity<String> changePassword(
+            @RequestBody ChangePasswordRequestDTO dto) {
+
+        userService.changePassword(dto);
+        return ResponseEntity.ok("Password changed successfully");
+    }
+
+
+    @PutMapping("/update/{id}")
+    public ResponseEntity<UserCreateResponseDTO> updateUser(
+            @PathVariable Long id,
+            @RequestBody UserUpdateRequestDTO dto) {
+
+        return ResponseEntity.ok(userService.updateUser(id, dto));
+   }
+    @GetMapping("/getByUser/{id}")
+    public ResponseEntity<UserGetResponse> getUserById(@PathVariable Long id) {
+        return ResponseEntity.ok(userService.getUserById(id));
+    }
+
+    @GetMapping("/getall")
+    public ResponseEntity<Page<UserGetResponse>> getAllUsers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "4") int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        return ResponseEntity.ok(userService.getAllUsers(pageable));
+    }
+
+
+    @PutMapping("/activate/{id}")
+    public ResponseEntity<UserStatusResponseDTO> activate(@PathVariable Long id) {
+        return ResponseEntity.ok(userService.changeStatus(id, true));
+    }
+
+    @PutMapping("/deactivate/{id}")
+    public ResponseEntity<UserStatusResponseDTO> deactivate(@PathVariable Long id) {
+        return ResponseEntity.ok(userService.changeStatus(id, false));
+    }
+
+
+
 }
