@@ -1,10 +1,14 @@
 package com.ssnhealthcare.drugstore.distributor.entity;
 
+import com.ssnhealthcare.drugstore.common.enums.DistributorStatus;
+import com.ssnhealthcare.drugstore.common.enums.PurchaseStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import lombok.Data;
 
 @Entity
+@Data
 @Table(name = "distributors")
 public class Distributor {
 
@@ -15,7 +19,7 @@ public class Distributor {
 
     @NotBlank
     @Column(name = "name", nullable = false, length = 30)
-    private String name;
+    private String distributorName;
 
     @NotBlank
     @Column(name = "contact_number", length = 20)
@@ -28,4 +32,9 @@ public class Distributor {
     @NotBlank
     @Column(name = "address", length = 200)
     private String address;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
+    private DistributorStatus status;
+
 }
