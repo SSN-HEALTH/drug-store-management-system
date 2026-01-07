@@ -5,6 +5,7 @@ import com.ssnhealthcare.drugstore.employee.dto.request.EmployeeUpdateRequestDTO
 import com.ssnhealthcare.drugstore.employee.dto.response.EmployeeCreateResponseDTO;
 import com.ssnhealthcare.drugstore.employee.dto.response.EmployeeGetResponseDTO;
 import com.ssnhealthcare.drugstore.employee.dto.response.EmployeeStatusResponseDTO;
+import com.ssnhealthcare.drugstore.employee.dto.response.EmployeeUpdateResponseDTO;
 import com.ssnhealthcare.drugstore.employee.entity.Employee;
 import com.ssnhealthcare.drugstore.employee.repository.EmployeeRepository;
 import com.ssnhealthcare.drugstore.employee.service.EmployeeService;
@@ -47,6 +48,17 @@ public class EmployeeServiceImpl implements EmployeeService {
         Employee savedEmployee = employeeRepository.save(employee);
         return mapToEmployeeCreateResponseDTO(savedEmployee);
     }
+    private EmployeeCreateResponseDTO mapToEmployeeCreateResponseDTO(Employee employee) {
+        EmployeeCreateResponseDTO dto = new EmployeeCreateResponseDTO();
+        dto.setEmployeeId(employee.getEmployeeId());
+        dto.setName(employee.getName());
+        dto.setEmail(employee.getEmail());
+        dto.setPhone(employee.getPhone());
+        dto.setUsername(employee.getUser().getUsername());
+        dto.setRole(employee.getUser().getRole());
+        dto.setActive(employee.getUser().isActive());
+        return dto;
+    }
 
     @Override
     public EmployeeGetResponseDTO getEmployeeById(Long id) {
@@ -79,7 +91,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public EmployeeCreateResponseDTO updateOwnProfile(Long employeeId, EmployeeUpdateRequestDTO dto) {
+    public EmployeeUpdateResponseDTO updateOwnProfile(Long employeeId, EmployeeUpdateRequestDTO dto) {
         Employee employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new EmployeeNotFoundException("Employee not found with id: " + employeeId));
         if (!employee.getEmail().equals(dto.getEmail()) &&
@@ -92,9 +104,17 @@ public class EmployeeServiceImpl implements EmployeeService {
         employee.setPhone(dto.getPhone());
 
         Employee updatedEmployee = employeeRepository.save(employee);
-        return mapToEmployeeCreateResponseDTO(updatedEmployee);
+        return mapToEmployeeUpdateResponseDTO(updatedEmployee);
     }
+    public EmployeeUpdateResponseDTO mapToEmployeeUpdateResponseDTO(Employee employee) {
 
+        EmployeeUpdateResponseDTO dto = new EmployeeUpdateResponseDTO();
+        dto.setName(employee.getName());
+        dto.setEmail(employee.getEmail());
+        dto.setPhone(employee.getPhone());
+
+        return dto;
+    }
     @Override
     public String deleteEmployee(Long employeeId) {
         Employee employee = employeeRepository.findById(employeeId)
@@ -107,17 +127,6 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
 
-    private EmployeeCreateResponseDTO mapToEmployeeCreateResponseDTO(Employee employee) {
-        EmployeeCreateResponseDTO dto = new EmployeeCreateResponseDTO();
-        dto.setEmployeeId(employee.getEmployeeId());
-        dto.setName(employee.getName());
-        dto.setEmail(employee.getEmail());
-        dto.setPhone(employee.getPhone());
-        dto.setUsername(employee.getUser().getUsername());
-        dto.setRole(employee.getUser().getRole());
-        dto.setActive(employee.getUser().isActive());
-        return dto;
-    }
 
     private EmployeeGetResponseDTO mapToEmployeeGetResponse(Employee employee) {
         EmployeeGetResponseDTO dto = new EmployeeGetResponseDTO();

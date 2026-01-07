@@ -4,6 +4,7 @@ import com.ssnhealthcare.drugstore.employee.dto.request.EmployeeCreateRequestDTO
 import com.ssnhealthcare.drugstore.employee.dto.request.EmployeeUpdateRequestDTO;
 import com.ssnhealthcare.drugstore.employee.dto.response.EmployeeCreateResponseDTO;
 import com.ssnhealthcare.drugstore.employee.dto.response.EmployeeGetResponseDTO;
+import com.ssnhealthcare.drugstore.employee.dto.response.EmployeeUpdateResponseDTO;
 import com.ssnhealthcare.drugstore.employee.service.EmployeeService;
 import lombok.AllArgsConstructor;
 import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
@@ -16,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @AllArgsConstructor
-@RequestMapping("/employee")
+@RequestMapping("/employees")
 public class EmployeeController {
     private final EmployeeService employeeService;
 
@@ -43,7 +44,7 @@ public class EmployeeController {
     }
 
     @PutMapping("/update/{employeeId}")
-    public ResponseEntity<EmployeeCreateResponseDTO> updateMyProfile(
+    public ResponseEntity<EmployeeUpdateResponseDTO> updateMyProfile(
             @PathVariable Long employeeId,
             @RequestBody EmployeeUpdateRequestDTO dto) {
 

@@ -24,12 +24,4 @@ public class EmployeeUpdateRequestDTO {
     @Pattern(regexp = "\\d{10}", message = "Phone number must contain only digits")
     private String phone;
 
-    @NotBlank(message = "Username must not be blank")
-    private String username;
-
-    @NotNull(message = "Active status is required")
-    private Boolean active;
-
-    @NotNull(message = "Role is required")
-    private RoleType role;
 }
