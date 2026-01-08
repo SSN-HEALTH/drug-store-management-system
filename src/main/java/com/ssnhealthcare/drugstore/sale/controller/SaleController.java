@@ -1,5 +1,6 @@
 package com.ssnhealthcare.drugstore.sale.controller;
 
+import com.ssnhealthcare.drugstore.sale.Dto.DtoRequest.SaleCreateRequestDto;
 import com.ssnhealthcare.drugstore.sale.Dto.DtoResponse.SaleResponseDto;
 import com.ssnhealthcare.drugstore.sale.service.SaleService;
 import lombok.AllArgsConstructor;
@@ -18,11 +19,13 @@ public class SaleController
 
     private final SaleService saleService;
 
-    //Create Sale from Order (POS Billing)
-    @PostMapping("/order/{orderId}")
-    public ResponseEntity<SaleResponseDto> createSaleFromOrder(@PathVariable Long orderId)
-    {
-        SaleResponseDto response = saleService.createSaleFromOrder(orderId);
+
+ // Create Sale from Order (POS Billing)
+    @PostMapping("/order")
+    public ResponseEntity<SaleResponseDto> createSaleFromOrder(
+            @RequestBody SaleCreateRequestDto saleCreateRequestDto) {
+
+        SaleResponseDto response = saleService.createSaleFromOrder(saleCreateRequestDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

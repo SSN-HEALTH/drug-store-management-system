@@ -1,5 +1,6 @@
 package com.ssnhealthcare.drugstore.sale.service;
 
+import com.ssnhealthcare.drugstore.sale.Dto.DtoRequest.SaleCreateRequestDto;
 import com.ssnhealthcare.drugstore.sale.Dto.DtoResponse.SaleResponseDto;
 
 
@@ -8,7 +9,7 @@ import java.util.List;
 
 public interface SaleService {
 
-    SaleResponseDto createSaleFromOrder(Long orderId);
+ SaleResponseDto createSaleFromOrder(SaleCreateRequestDto dto);
 
      SaleResponseDto getSaleById(Long saleId);
 

@@ -2,12 +2,17 @@ package com.ssnhealthcare.drugstore.report.service.implementation;
 
 import com.ssnhealthcare.drugstore.drug.repository.DrugRepository;
 import com.ssnhealthcare.drugstore.exception.BusinessException;
+import com.ssnhealthcare.drugstore.inventory.repository.InventoryRepository;
 import com.ssnhealthcare.drugstore.order.repository.OrderItemRepository;
+import com.ssnhealthcare.drugstore.order.repository.OrderRepository;
 import com.ssnhealthcare.drugstore.report.Dto.FinancialReportDto;
 import com.ssnhealthcare.drugstore.report.Dto.SalesReportDto;
 import com.ssnhealthcare.drugstore.report.Dto.StockReportDto;
 import com.ssnhealthcare.drugstore.report.service.ReportService;
+import com.ssnhealthcare.drugstore.sale.repository.SaleItemRepository;
+import com.ssnhealthcare.drugstore.sale.repository.SaleRepository;
 import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -15,13 +20,23 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 @AllArgsConstructor
+
 public class ReportServiceImpl implements ReportService {
     private final OrderItemRepository orderItemRepository;
-    private DrugRepository drugRepository;
+
+    private  final InventoryRepository inventoryRepository;
+
+    private  final SaleItemRepository saleItemRepository;
+
+    private final OrderRepository orderRepository;
+
+    private  final SaleRepository saleRepository;
+
 
     private static final int DEFAULT_PAGE = 0;
     private static final int DEFAULT_SIZE = 10;
@@ -30,56 +45,57 @@ public class ReportServiceImpl implements ReportService {
     public Page<SalesReportDto> generateSaleReport(LocalDate fromDate, LocalDate toDate)
     {
         if (fromDate.isAfter(toDate)) {
-            throw new BusinessException("From date cannot be after To date");
+            throw new RuntimeException("From date cannot be after To date");
         }
 
-        try {
-            List<SalesReportDto> report = orderItemRepository.getSalesReport(fromDate.atStartOfDay(), toDate.atTime(23, 59, 59));
+        List<SalesReportDto> report = saleItemRepository.getSalesReport(
+                fromDate.atStartOfDay(),
+                toDate.atTime(23, 59, 59)
+        );
 
-            return paginate(report, DEFAULT_PAGE, DEFAULT_SIZE);
+        // Set available stock for each drug
+        report.forEach(r -> {
+            inventoryRepository.findByDrug_DrugName(r.getDrugName())
+                    .ifPresent(inv -> r.setAvailableStock(inv.getQuantity()));
+        });
 
-        }
-        catch (Exception e)
-        {
-            throw new BusinessException("Failed to generate sales report");
-        }
+        // Pagination if needed
+        return new PageImpl<>(report);
     }
 
     @Override
     public Page<StockReportDto> generateStockReport()
     {
-        try {
-        List<StockReportDto> report = drugRepository.getStockReport();
+
+        List<StockReportDto> report = inventoryRepository.getStockReport();
 
         return paginate(report,DEFAULT_PAGE,DEFAULT_SIZE);
-    } catch (Exception e)
-        {
-            throw new BusinessException("Failed to Generate the Report");
-        }
 
     }
 
     @Override
     public FinancialReportDto generateFinancialReport(LocalDate fromDate, LocalDate toDate)
     {
-        if(fromDate.isAfter(toDate))
-        {
-            throw  new BusinessException("From Date cannot be after To date");
+        if (fromDate.isAfter(toDate)) {
+            throw new BusinessException("From Date cannot be after To Date");
         }
-        try {
-           List<SalesReportDto> sales= orderItemRepository.getSalesReport(fromDate.atStartOfDay(),toDate.atTime(23,59,59));
-            long totalItems = sales.stream().mapToLong(SalesReportDto::getTotalQuantitySold).sum();
 
-            BigDecimal totalRevenue = sales.stream()
-                            .map(SalesReportDto::getTotalRevenue)
-                            .reduce(BigDecimal.ZERO, BigDecimal::add);
+        LocalDateTime from = fromDate.atStartOfDay();
+        LocalDateTime to = toDate.atTime(23, 59, 59);
 
-            return new FinancialReportDto( Long.valueOf(sales.size()), totalItems, totalRevenue);
-        }
-        catch (Exception e)
-        {
-            throw new BusinessException("Failed to Generate the Report");
-        }
+        Long totalOrders =
+                orderRepository.countCompletedOrders(from, to);
+
+        Long totalItemsSold =
+                saleItemRepository.getTotalItemsSold(from, to);
+
+        BigDecimal totalRevenue =
+                saleRepository.getTotalRevenue(from, to);
+
+        return new FinancialReportDto(
+                totalOrders,
+                totalItemsSold,
+                totalRevenue);
 
     }
 
