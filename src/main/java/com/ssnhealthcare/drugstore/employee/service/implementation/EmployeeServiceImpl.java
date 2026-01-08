@@ -109,7 +109,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
 
-    // ================= MAPPERS =================
+
     private EmployeeResponseDTO mapToEmployeeResponse(Employee employee) {
 
         EmployeeResponseDTO dto = new EmployeeResponseDTO();
