@@ -62,5 +62,4 @@ public class InventoryController {
         Page<InventoryResponseDTO> response = inventoryService.getAllInventory(dto);
         return ResponseEntity.ok(response);
     }
-
 }

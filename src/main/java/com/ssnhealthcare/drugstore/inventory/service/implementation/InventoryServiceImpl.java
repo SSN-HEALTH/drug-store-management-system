@@ -1,5 +1,6 @@
 package com.ssnhealthcare.drugstore.inventory.service.implementation;
 
+import com.ssnhealthcare.drugstore.common.mapper.InventoryMapper;
 import com.ssnhealthcare.drugstore.drug.entity.Drug;
 import com.ssnhealthcare.drugstore.drug.repository.DrugRepository;
 import com.ssnhealthcare.drugstore.exception.BusinessException;
@@ -29,6 +30,7 @@ public class InventoryServiceImpl implements InventoryService {
 
     private final InventoryRepository inventoryRepository;
     private final DrugRepository drugRepository;
+    private final InventoryMapper inventoryMapper;
 
     @Override
     @Transactional
@@ -36,8 +38,7 @@ public class InventoryServiceImpl implements InventoryService {
 
         Drug drug = drugRepository.findById(dto.getId())
                 .orElseThrow(() ->
-                 new DrugNotFoundException("Drug not found with id: "
-                 + dto.getId()));
+                        new DrugNotFoundException("Drug not found with id: " + dto.getId()));
 
         Inventory inventory = new Inventory();
         inventory.setDrug(drug);
@@ -46,9 +47,9 @@ public class InventoryServiceImpl implements InventoryService {
         inventory.setExpiryDate(dto.getExpiryDate());
         inventory.setBatchNumber(dto.getBatchNumber());
 
-        Inventory saveInventory = inventoryRepository.save(inventory);
-
-        return mapToResponseDTO(saveInventory);
+        return inventoryMapper.toResponse(
+                inventoryRepository.save(inventory)
+        );
     }
 
     @Override
@@ -71,9 +72,7 @@ public class InventoryServiceImpl implements InventoryService {
 
         int remainingQuantity = oldQuantity - dto.getQuantity();
         inventory.setQuantity(remainingQuantity);
-
         inventoryRepository.save(inventory);
-
 
         ReduceStockResponseDTO response = new ReduceStockResponseDTO();
         response.setDrugId(drug.getDrugId());
@@ -90,36 +89,32 @@ public class InventoryServiceImpl implements InventoryService {
     public InventoryResponseDTO getInventoryByDrug(Long drugId) {
 
         Drug drug = drugRepository.findById(drugId)
-            .orElseThrow(() ->
-            new DrugNotFoundException("Drug not found with id: " + drugId));
+                .orElseThrow(() ->
+                        new DrugNotFoundException("Drug not found with id: " + drugId));
 
         Inventory inventory = inventoryRepository.findByDrug(drug)
-            .orElseThrow(() ->
-            new BusinessException("Inventory not found for drug id: " + drugId));
+                .orElseThrow(() ->
+                        new BusinessException("Inventory not found for drug id: " + drugId));
 
-        return mapToResponseDTO(inventory);
+        return inventoryMapper.toResponse(inventory);
     }
 
     @Override
     public List<InventoryResponseDTO> getLowStockInventories() {
 
-        List<Inventory> inventories = inventoryRepository.findAll();
-
-        return inventories.stream()
+        return inventoryRepository.findAll().stream()
                 .filter(inv -> inv.getQuantity() <= inv.getReorderLevel())
-                .map(this::mapToResponseDTO)
+                .map(inventoryMapper::toResponse)
                 .toList();
     }
 
     @Override
     public List<InventoryResponseDTO> getExpiringInventories(Integer days) {
+
         LocalDate expiryLimitDate = LocalDate.now().plusDays(days);
 
-        List<Inventory> inventories =
-                inventoryRepository.findByExpiryDateBefore(expiryLimitDate);
-
-        return inventories.stream()
-                .map(this::mapToResponseDTO)
+        return inventoryRepository.findByExpiryDateBefore(expiryLimitDate).stream()
+                .map(inventoryMapper::toResponse)
                 .toList();
     }
 
@@ -131,23 +126,8 @@ public class InventoryServiceImpl implements InventoryService {
                 dto.getSize(),
                 Sort.by("expiryDate").ascending()
         );
-        Page<Inventory> inventoryPage =
-                inventoryRepository.findAll(pageable);
 
-        return inventoryPage.map(this::mapToResponseDTO);
-    }
-
-    public InventoryResponseDTO mapToResponseDTO(Inventory inventory){
-
-        InventoryResponseDTO response = new InventoryResponseDTO();
-        response.setInventoryId(inventory.getInventoryId());
-        response.setDrugId(inventory.getDrug().getDrugId());
-        response.setDrugName(inventory.getDrug().getDrugName());
-        response.setQuantity(inventory.getQuantity());
-        response.setReorderLevel(inventory.getReorderLevel());
-        response.setExpiryDate(inventory.getExpiryDate());
-        response.setBatchNumber(inventory.getBatchNumber());
-
-        return response;
+        return inventoryRepository.findAll(pageable)
+                .map(inventoryMapper::toResponse);
     }
 }
