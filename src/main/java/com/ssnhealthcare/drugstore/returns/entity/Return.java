@@ -1,8 +1,7 @@
 package com.ssnhealthcare.drugstore.returns.entity;
 
 import com.ssnhealthcare.drugstore.common.enums.ReturnReason;
-import com.ssnhealthcare.drugstore.drug.entity.Drug;
-import com.ssnhealthcare.drugstore.user.entity.User;
+import com.ssnhealthcare.drugstore.inventory.entity.Inventory;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import lombok.Data;
@@ -10,30 +9,26 @@ import lombok.Data;
 import java.time.LocalDate;
 
 @Entity
-@Data
 @Table(name = "returns")
+@Data
 public class Return {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "return_id")
-    private Long returnID;
+    private Long returnId;
 
     @ManyToOne
-    @JoinColumn(name = "drug_id", nullable = false)
-    private Drug drug;
-
-    @ManyToOne
-    @JoinColumn(name = "processed_by", nullable = false)
-    private User processedBY;
-
-    @Min(1)
-    @Column(name = "quantity", nullable = false)
-    private Integer quantity;
+    @JoinColumn(name = "inventory_id", nullable = false)
+    private Inventory inventory;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "reason", nullable = false)
     private ReturnReason reason;
+
+    @Min(1)
+    @Column(name = "quantity", nullable = false)
+    private Integer quantity;
 
     @Column(name = "return_date", nullable = false)
     private LocalDate returnDate;

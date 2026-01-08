@@ -2,6 +2,6 @@ package com.ssnhealthcare.drugstore.common.enums;
 
 public enum AlertType {
     LOW_STOCK,
-    EXPIRY,
-    SYSTEM
+    NEAR_EXPIRY,
+    EXPIRED
 }
