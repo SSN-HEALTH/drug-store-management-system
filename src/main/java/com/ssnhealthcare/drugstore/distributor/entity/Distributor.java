@@ -22,6 +22,10 @@ public class Distributor {
     private String distributorName;
 
     @NotBlank
+    @Column(name = "license_number", length = 20)
+    private String licenseNumber;
+
+    @NotBlank
     @Column(name = "contact_number", length = 20)
     private String contactNumber;
 

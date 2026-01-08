@@ -1,4 +1,4 @@
-package com.ssnhealthcare.drugstore.purchase.exception;
+package com.ssnhealthcare.drugstore.exception;
 
 public class DistributorNotFoundException extends RuntimeException {
     public DistributorNotFoundException(String message) {

@@ -14,4 +14,5 @@ public class PurchaseOrderRequestDTO {
     @NotBlank(message = "Purchase Order Id cannot be blank ")
     @NumberFormat
     private Long purchaseOrderId;
+    private String invoiceNumber;
 }

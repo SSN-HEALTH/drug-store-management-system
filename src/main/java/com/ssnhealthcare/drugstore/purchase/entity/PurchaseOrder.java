@@ -5,6 +5,7 @@ import com.ssnhealthcare.drugstore.user.entity.User;
 import com.ssnhealthcare.drugstore.common.enums.PurchaseStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -29,10 +30,13 @@ public class PurchaseOrder {
 
     @ManyToOne
     @JoinColumn(name = "distributor_id", nullable = false)
-    private Distributor distributor;
+    private Distributor distributorId;
+
+//    @NotNull (message = "Distributor Id cannot be blank")
+//    private Long distributorId;
 
     @NotBlank (message = "invoiceNumber cannot be blank")
-    private Long invoiceNumber;
+    private String invoiceNumber;
 
     @ManyToOne
     @JoinColumn(name = "created_by", nullable = false)

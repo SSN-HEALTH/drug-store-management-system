@@ -1,23 +1,15 @@
 package com.ssnhealthcare.drugstore.purchase.controller;
 
-import com.ssnhealthcare.drugstore.purchase.dto.Request.AllPurchaseDetailsRequestByDateDTO;
-import com.ssnhealthcare.drugstore.purchase.dto.Request.AllPurchaseDetailsRequestDTO;
-import com.ssnhealthcare.drugstore.purchase.dto.Request.NewPurchaseOrderRequestDTO;
-import com.ssnhealthcare.drugstore.purchase.dto.Request.PurchaseOrderCancelRequestDTO;
-import com.ssnhealthcare.drugstore.purchase.dto.Request.PurchaseOrderRequestDTO;
-import com.ssnhealthcare.drugstore.purchase.dto.Response.AllPurchaseDetailsResponseByDateDTO;
-import com.ssnhealthcare.drugstore.purchase.dto.Response.AllPurchaseDetailsResponseDTO;
-import com.ssnhealthcare.drugstore.purchase.dto.Response.NewPurchaseOrderResponseDTO;
-import com.ssnhealthcare.drugstore.purchase.dto.Response.PurchaseOrderCancelResponseDTO;
-import com.ssnhealthcare.drugstore.purchase.dto.Response.PurchaseOrderResponseDTO;
+import com.ssnhealthcare.drugstore.purchase.dto.Request.*;
+import com.ssnhealthcare.drugstore.purchase.dto.Response.*;
 import com.ssnhealthcare.drugstore.purchase.service.PurchaseOrderService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 public class PurchaseController {
@@ -25,33 +17,44 @@ public class PurchaseController {
     private PurchaseOrderService purchaseOrderService;
 
     @GetMapping("/allPurchases")
-    public Page<AllPurchaseDetailsResponseDTO>
-    getAllPurchaseDetails(@Valid @RequestBody AllPurchaseDetailsRequestDTO Requestdto) {
+    public Page<PurchaseResponseDTO>
+    getAllPurchaseDetails(@Valid @RequestBody AllPurchaseDetailsRequestDTO dto) {
 
-        Page <AllPurchaseDetailsResponseDTO> response =
-                purchaseOrderService.getAllPurchaseDetails(Requestdto);
+        Page <PurchaseResponseDTO> response =
+                purchaseOrderService.getAllPurchaseDetails(dto);
         return ResponseEntity.ok(response).getBody();
     }
 
     @PostMapping("/createPurchase")
-    public ResponseEntity<NewPurchaseOrderResponseDTO> newPurchaseOrder(@Valid @RequestBody NewPurchaseOrderRequestDTO dto) {
+    public ResponseEntity<PurchaseResponseDTO> newPurchaseOrder(@Valid @RequestBody NewPurchaseOrderRequestDTO dto) {
 
-        NewPurchaseOrderResponseDTO response = purchaseOrderService.newPurchaseOrder(dto).getBody();
+        PurchaseResponseDTO response = purchaseOrderService.newPurchaseOrder(dto);
         return ResponseEntity.ok(response);
 
     }
 
     @GetMapping("/purchase/{id}")
-    public ResponseEntity<PurchaseOrderResponseDTO> getPurchaseById(@Valid @RequestBody PurchaseOrderRequestDTO dto){
-        PurchaseOrderResponseDTO response = purchaseOrderService.PurchaseOrder(dto).getBody();
+    public ResponseEntity<PurchaseResponseDTO> getPurchaseById(@Valid @RequestBody PurchaseOrderRequestDTO dto){
+        PurchaseResponseDTO response = purchaseOrderService.purchaseOrderById(dto);
 
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/purchases/{id}/cancel")
-    public ResponseEntity <PurchaseOrderCancelResponseDTO> cancelPurchaseById(@Valid @RequestBody PurchaseOrderCancelRequestDTO dto) {
-        PurchaseOrderCancelResponseDTO response = purchaseOrderService
+    @PostMapping("/purchase/{id}/cancel")
+    public ResponseEntity <PurchaseResponseDTO> cancelPurchaseById(@Valid @RequestBody PurchaseOrderCancelRequestDTO dto) {
+        PurchaseResponseDTO response = purchaseOrderService.cancelOrderById(dto);
+        return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/purchaseByDates")
+    public ResponseEntity<Page<PurchaseResponseDTO>>
+    getPurchasesBetweenDates(
+            @Valid @ModelAttribute PurchaseBetweenDatesRequestDTO dto) {
+
+        Page<PurchaseResponseDTO> response =
+                purchaseOrderService.getPurchaseBetweenDates(dto);
+
+        return ResponseEntity.ok(response);
+    }
 
 }

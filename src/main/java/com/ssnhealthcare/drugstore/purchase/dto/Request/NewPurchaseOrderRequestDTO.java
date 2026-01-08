@@ -5,9 +5,7 @@ import com.ssnhealthcare.drugstore.distributor.entity.Distributor;
 import com.ssnhealthcare.drugstore.purchase.entity.PurchaseItem;
 import com.ssnhealthcare.drugstore.user.entity.User;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.FutureOrPresent;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,28 +19,32 @@ import java.util.List;
 @NoArgsConstructor
 public class NewPurchaseOrderRequestDTO {
 
-    @NotBlank(message = "Purchase-order cannot be empty")
+    @NotNull(message = "Purchase-order cannot be NULL")
     @NumberFormat
     private Long purchaseOrderId;
 
-    @NotBlank(message = "Distributor cannot be empty")
+    @NotBlank (message = "invoiceNumber cannot be blank")
+    private String invoiceNumber;
+
+
+    @NotNull(message = "distributor Id cannot be NULL")
     @NumberFormat
     private Long distributorId;
 
-    @NotBlank(message = "Distributor cannot be empty")
+    @NotNull(message = "distributor Name cannot be NULL")
     private Long distributorName;
 
     @NotBlank (message = "User cannot be empty")
-    private User createdBy;
+    private Long createdBy;
 
-    @NotBlank (message = "Date cannot be empty")
+    @NotNull (message = "Date cannot be empty")
     @FutureOrPresent
     private LocalDateTime orderDateTime;
 
-    @NotBlank (message = "Status cannot be empty")
+    @NotNull (message = "Status cannot be empty")
     private PurchaseStatus status;
 
-    @NotBlank (message = "Items cannot be empty")
+    @NotNull (message = "Items cannot be empty")
     private List <PurchaseItem> items;
 
 
