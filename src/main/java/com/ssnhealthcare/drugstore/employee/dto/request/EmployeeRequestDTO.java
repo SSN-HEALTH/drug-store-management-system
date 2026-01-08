@@ -9,7 +9,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
-public class EmployeeCreateRequestDTO {
+public class EmployeeRequestDTO {
     
     @NotBlank(message = "Name must not be blank")
     @Size(min = 2, max = 50, message = "Name must be between 2 and 50 characters")

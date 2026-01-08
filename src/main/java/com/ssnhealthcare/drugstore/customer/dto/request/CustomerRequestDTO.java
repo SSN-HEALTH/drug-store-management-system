@@ -5,7 +5,7 @@ import jakarta.validation.constraints.*;
 import lombok.Data;
 
 @Data
-public class CreateCustomerRequestDTO {
+public class CustomerRequestDTO {
 
     @NotBlank(message = "Customer name is required")
     @Size(max = 30, message = "Name must not exceed 30 characters")

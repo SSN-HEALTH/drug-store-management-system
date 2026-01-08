@@ -3,8 +3,8 @@ package com.ssnhealthcare.drugstore.employee.dto.response;
 import lombok.Data;
 
 @Data
-public class EmployeeStatusResponseDTO {
+public class DeleteEmployeeResponseDTO {
+
     private Long employeeId;
-    private boolean active;
     private String message;
 }

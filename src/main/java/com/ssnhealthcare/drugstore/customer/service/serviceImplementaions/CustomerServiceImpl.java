@@ -1,16 +1,14 @@
 package com.ssnhealthcare.drugstore.customer.service.serviceImplementaions;
 
-import com.ssnhealthcare.drugstore.customer.dto.request.CreateCustomerRequestDTO;
+import com.ssnhealthcare.drugstore.customer.dto.request.CustomerRequestDTO;
 import com.ssnhealthcare.drugstore.customer.dto.request.CustomerUpdateRequestDTO;
 import com.ssnhealthcare.drugstore.customer.dto.request.GetAllCustomersRequestDto;
-import com.ssnhealthcare.drugstore.customer.dto.response.CreateCustomerResponseDTO;
+import com.ssnhealthcare.drugstore.customer.dto.response.CustomerResponseDTO;
 import com.ssnhealthcare.drugstore.customer.dto.response.CustomerUpdateResponseDTO;
-import com.ssnhealthcare.drugstore.customer.dto.response.GetAllCustomerResponseDTO;
 import com.ssnhealthcare.drugstore.customer.entity.Customer;
 import com.ssnhealthcare.drugstore.customer.repository.CustomerRepository;
 import com.ssnhealthcare.drugstore.customer.service.CustomerService;
 import com.ssnhealthcare.drugstore.exception.CustomerNotFoundException;
-import com.ssnhealthcare.drugstore.exception.UserNotFoundException;
 import com.ssnhealthcare.drugstore.user.entity.User;
 import com.ssnhealthcare.drugstore.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -21,40 +19,86 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-
 @Service
 @AllArgsConstructor
+@Transactional
 public class CustomerServiceImpl implements CustomerService {
-    UserRepository userRepository;
-    CustomerRepository customerRepository;
+
+    private final UserRepository userRepository;
+    private final CustomerRepository customerRepository;
+
 
     @Override
-    public CreateCustomerResponseDTO createCustomer(CreateCustomerRequestDTO dto) {
-        User user=new User();
-        user.setRole(dto.getRole());
+    public CustomerResponseDTO createCustomer(CustomerRequestDTO dto) {
+
+        User user = new User();
         user.setUsername(dto.getUsername());
         user.setPassword(dto.getPassword());
+        user.setRole(dto.getRole());
         user.setActive(dto.getIsActive());
-            userRepository.save(user);
-        Customer customer=new Customer();
+        userRepository.save(user);
+
+        Customer customer = new Customer();
         customer.setName(dto.getName());
         customer.setEmail(dto.getEmail());
         customer.setPhone(dto.getPhone());
         customer.setAddress(dto.getAddress());
         customer.setUser(user);
-            Customer savedCustomer=customerRepository.save(customer);
-        return mapToCreateResponseDTO(savedCustomer);
 
+        customerRepository.save(customer);
 
+        return mapToCustomerResponse(customer);
+    }
+
+    @Override
+    @Transactional
+    public CustomerResponseDTO getCustomerById(Long customerId) {
+
+        Customer customer = customerRepository.findById(customerId)
+                .orElseThrow(() ->
+                        new CustomerNotFoundException(
+                                "Customer not found with id: " + customerId));
+
+        return mapToCustomerResponse(customer);
+    }
+
+    @Override
+    @Transactional
+    public Page<CustomerResponseDTO> getAllCustomers(GetAllCustomersRequestDto dto) {
+
+        Pageable pageable = PageRequest.of(
+                dto.getPageNumber(),
+                Math.min(dto.getSize(), 100),
+                Sort.by(Sort.Direction.ASC, "name")
+        );
+
+        return customerRepository.findAll(pageable)
+                .map(this::mapToCustomerResponse);
     }
 
 
+    @Override
+    public CustomerUpdateResponseDTO updateCustomer(
+            Long customerId,
+            CustomerUpdateRequestDTO dto) {
 
-    private CreateCustomerResponseDTO mapToCreateResponseDTO(Customer customer) {
+        Customer customer = customerRepository.findById(customerId)
+                .orElseThrow(() ->
+                        new CustomerNotFoundException(
+                                "Customer not found with id: " + customerId));
 
-        CreateCustomerResponseDTO dto = new CreateCustomerResponseDTO();
+        customer.setName(dto.getName());
+        customer.setEmail(dto.getEmail());
+        customer.setPhone(dto.getPhone());
+        customer.setAddress(dto.getAddress());
 
+        return mapToUpdateResponse(customer);
+    }
+
+
+    private CustomerResponseDTO mapToCustomerResponse(Customer customer) {
+
+        CustomerResponseDTO dto = new CustomerResponseDTO();
         dto.setCustomerId(customer.getCustomerId());
         dto.setName(customer.getName());
         dto.setEmail(customer.getEmail());
@@ -69,68 +113,14 @@ public class CustomerServiceImpl implements CustomerService {
 
         return dto;
     }
-    @Override
-    public GetAllCustomerResponseDTO getCustomerById(Long customerId) {
 
-        Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new CustomerNotFoundException
-                        ("Customer not found with id: " + customerId));
+    private CustomerUpdateResponseDTO mapToUpdateResponse(Customer customer) {
 
-        return mapToResponseDto(customer);
-    }
-
-
-    //------------------------------------------------------------------------------
-@Override
-public Page<GetAllCustomerResponseDTO> getAllCustomers(GetAllCustomersRequestDto dto) {
-
-    int page = dto.getPageNumber();
-    int size = Math.min(dto.getSize(), 100);
-
-    Pageable pageable = PageRequest.of(
-            page,
-            size,
-            Sort.by(Sort.Direction.ASC, "name")
-    );
-
-    return customerRepository.findAll(pageable)
-            .map(this::mapToResponseDto);
-}
-
-
-    private GetAllCustomerResponseDTO mapToResponseDto(Customer customer) {
-
-        GetAllCustomerResponseDTO dto = new GetAllCustomerResponseDTO();
-        dto.setCustomerId(customer.getCustomerId());
-        dto.setName(customer.getName());
-        dto.setEmail(customer.getEmail());
-        dto.setPhone(customer.getPhone());
-
-        return dto;
-    }
-//-----------------------------------------------------------------------------------------------------------------
-@Transactional
-    @Override
-public CustomerUpdateResponseDTO updateCustomer(Long customerId, CustomerUpdateRequestDTO dto) {
-
-    Customer customer = customerRepository.findById(customerId)
-            .orElseThrow(() -> new CustomerNotFoundException
-                    ("Customer not found with id: " + customerId));
-    customer.setName(dto.getName());
-    customer.setEmail(dto.getEmail());
-    customer.setPhone(dto.getPhone());
-    customer.setAddress(dto.getAddress());
-    Customer customer1=customerRepository.save(customer);
-
-    return mapToUpdateResponse(customer1);
-}
-public CustomerUpdateResponseDTO mapToUpdateResponse(Customer customer){
-        CustomerUpdateResponseDTO dto=new CustomerUpdateResponseDTO();
+        CustomerUpdateResponseDTO dto = new CustomerUpdateResponseDTO();
         dto.setName(customer.getName());
         dto.setEmail(customer.getEmail());
         dto.setPhone(customer.getPhone());
         dto.setAddress(customer.getAddress());
         return dto;
-
-}
+    }
 }

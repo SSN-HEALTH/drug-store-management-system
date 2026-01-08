@@ -4,7 +4,7 @@ import com.ssnhealthcare.drugstore.common.enums.RoleType;
 import lombok.Data;
 
 @Data
-public class CreateCustomerResponseDTO {
+public class CustomerResponseDTO {
 
     private Long customerId;
     private String name;

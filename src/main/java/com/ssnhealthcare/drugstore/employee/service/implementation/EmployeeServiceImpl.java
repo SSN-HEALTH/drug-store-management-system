@@ -1,10 +1,10 @@
 package com.ssnhealthcare.drugstore.employee.service.implementation;
 
-import com.ssnhealthcare.drugstore.employee.dto.request.EmployeeCreateRequestDTO;
+import com.ssnhealthcare.drugstore.employee.dto.request.EmployeeRequestDTO;
 import com.ssnhealthcare.drugstore.employee.dto.request.EmployeeUpdateRequestDTO;
-import com.ssnhealthcare.drugstore.employee.dto.response.EmployeeCreateResponseDTO;
+import com.ssnhealthcare.drugstore.employee.dto.response.DeleteEmployeeResponseDTO;
+import com.ssnhealthcare.drugstore.employee.dto.response.EmployeeResponseDTO;
 import com.ssnhealthcare.drugstore.employee.dto.response.EmployeeGetResponseDTO;
-import com.ssnhealthcare.drugstore.employee.dto.response.EmployeeStatusResponseDTO;
 import com.ssnhealthcare.drugstore.employee.dto.response.EmployeeUpdateResponseDTO;
 import com.ssnhealthcare.drugstore.employee.entity.Employee;
 import com.ssnhealthcare.drugstore.employee.repository.EmployeeRepository;
@@ -22,80 +22,65 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class EmployeeServiceImpl implements EmployeeService {
 
     private final EmployeeRepository employeeRepository;
     private final UserRepository userRepository;
-    private final UserService userService;
+
 
     @Override
-    @Transactional
-    public EmployeeCreateResponseDTO createEmployee(EmployeeCreateRequestDTO dto) {
+    public EmployeeResponseDTO createEmployee(EmployeeRequestDTO dto) {
 
         User user = new User();
         user.setUsername(dto.getUsername());
         user.setPassword(dto.getPassword());
         user.setRole(dto.getRole());
         user.setActive(true);
-        User savedUser = userRepository.save(user);
+
+        userRepository.save(user);
 
         Employee employee = new Employee();
         employee.setName(dto.getName());
         employee.setEmail(dto.getEmail());
         employee.setPhone(dto.getPhone());
-        employee.setUser(savedUser);
+        employee.setUser(user);
 
-        Employee savedEmployee = employeeRepository.save(employee);
-        return mapToEmployeeCreateResponseDTO(savedEmployee);
-    }
-    private EmployeeCreateResponseDTO mapToEmployeeCreateResponseDTO(Employee employee) {
-        EmployeeCreateResponseDTO dto = new EmployeeCreateResponseDTO();
-        dto.setEmployeeId(employee.getEmployeeId());
-        dto.setName(employee.getName());
-        dto.setEmail(employee.getEmail());
-        dto.setPhone(employee.getPhone());
-        dto.setUsername(employee.getUser().getUsername());
-        dto.setRole(employee.getUser().getRole());
-        dto.setActive(employee.getUser().isActive());
-        return dto;
+        employeeRepository.save(employee);
+
+        return mapToEmployeeResponse(employee);
     }
 
     @Override
-    public EmployeeGetResponseDTO getEmployeeById(Long id) {
+    @Transactional(readOnly = true)
+    public EmployeeResponseDTO getEmployeeById(Long id) {
+
         Employee employee = employeeRepository.findById(id)
-                .orElseThrow(() -> new EmployeeNotFoundException("Employee not found with id: " + id));
-        return mapToEmployeeGetResponse(employee);
+                .orElseThrow(() ->
+                        new EmployeeNotFoundException("Employee not found with id: " + id));
+
+        return mapToEmployeeResponse(employee);
     }
 
     @Override
-    public Page<EmployeeGetResponseDTO> getAllEmployees(Pageable pageable) {
+    @Transactional(readOnly = true)
+    public Page<EmployeeResponseDTO> getAllEmployees(Pageable pageable) {
         return employeeRepository.findAll(pageable)
-                .map(this::mapToEmployeeGetResponse);
+                .map(this::mapToEmployeeResponse);
     }
 
     @Override
-    @Transactional
-    public EmployeeStatusResponseDTO changeStatus(Long id, boolean active) {
-        Employee employee = employeeRepository.findById(id)
-                .orElseThrow(() -> new EmployeeNotFoundException("Employee not found with id: " + id));
+    public EmployeeUpdateResponseDTO updateOwnProfile(
+            Long employeeId,
+            EmployeeUpdateRequestDTO dto) {
 
-        User user = employee.getUser();
-        user.setActive(active);
-
-        EmployeeStatusResponseDTO response = new EmployeeStatusResponseDTO();
-        response.setEmployeeId(employee.getEmployeeId());
-        response.setActive(active);
-        response.setMessage("Employee status updated successfully");
-
-        return response;
-    }
-
-    @Override
-    public EmployeeUpdateResponseDTO updateOwnProfile(Long employeeId, EmployeeUpdateRequestDTO dto) {
         Employee employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new EmployeeNotFoundException("Employee not found with id: " + employeeId));
-        if (!employee.getEmail().equals(dto.getEmail()) &&
-                employeeRepository.existsByEmail(dto.getEmail())) {
+                .orElseThrow(() ->
+                        new EmployeeNotFoundException(
+                                "Employee not found with id: " + employeeId));
+
+        if (!employee.getEmail().equals(dto.getEmail())
+                && employeeRepository.existsByEmail(dto.getEmail())) {
             throw new ResourceAlreadyExistException("Email already in use");
         }
 
@@ -103,38 +88,49 @@ public class EmployeeServiceImpl implements EmployeeService {
         employee.setEmail(dto.getEmail());
         employee.setPhone(dto.getPhone());
 
-        Employee updatedEmployee = employeeRepository.save(employee);
-        return mapToEmployeeUpdateResponseDTO(updatedEmployee);
+        return mapToEmployeeUpdateResponse(employee);
     }
-    public EmployeeUpdateResponseDTO mapToEmployeeUpdateResponseDTO(Employee employee) {
 
-        EmployeeUpdateResponseDTO dto = new EmployeeUpdateResponseDTO();
-        dto.setName(employee.getName());
-        dto.setEmail(employee.getEmail());
-        dto.setPhone(employee.getPhone());
-
-        return dto;
-    }
     @Override
-    public String deleteEmployee(Long employeeId) {
+    public DeleteEmployeeResponseDTO deleteEmployee(Long employeeId) {
+
         Employee employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() ->
                         new EmployeeNotFoundException(
                                 "Employee not found with id: " + employeeId));
 
         employeeRepository.delete(employee);
-        return "Employee deleted successfully";
+
+        DeleteEmployeeResponseDTO response = new DeleteEmployeeResponseDTO();
+        response.setEmployeeId(employeeId);
+        response.setMessage("Employee deleted successfully");
+
+        return response;
     }
 
 
+    // ================= MAPPERS =================
+    private EmployeeResponseDTO mapToEmployeeResponse(Employee employee) {
 
-    private EmployeeGetResponseDTO mapToEmployeeGetResponse(Employee employee) {
-        EmployeeGetResponseDTO dto = new EmployeeGetResponseDTO();
+        EmployeeResponseDTO dto = new EmployeeResponseDTO();
         dto.setEmployeeId(employee.getEmployeeId());
         dto.setName(employee.getName());
         dto.setEmail(employee.getEmail());
         dto.setPhone(employee.getPhone());
         dto.setUsername(employee.getUser().getUsername());
+        dto.setRole(employee.getUser().getRole());
+        dto.setActive(employee.getUser().isActive());
+
+        return dto;
+    }
+
+    private EmployeeUpdateResponseDTO mapToEmployeeUpdateResponse(Employee employee) {
+
+        EmployeeUpdateResponseDTO dto = new EmployeeUpdateResponseDTO();
+        dto.setName(employee.getName());
+        dto.setEmail(employee.getEmail());
+        dto.setPhone(employee.getPhone());
+
         return dto;
     }
 }

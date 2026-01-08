@@ -1,9 +1,10 @@
 package com.ssnhealthcare.drugstore.user.controller;
 
 import com.ssnhealthcare.drugstore.user.dto.request.ChangePasswordRequestDTO;
-import com.ssnhealthcare.drugstore.user.dto.request.UserCreateRequestDTO;
+import com.ssnhealthcare.drugstore.user.dto.request.UserRequestDTO;
 import com.ssnhealthcare.drugstore.user.dto.request.UserUpdateRequestDTO;
-import com.ssnhealthcare.drugstore.user.dto.responce.UserCreateResponseDTO;
+import com.ssnhealthcare.drugstore.user.dto.responce.ChangePasswordResponse;
+import com.ssnhealthcare.drugstore.user.dto.responce.UserResponseDTO;
 import com.ssnhealthcare.drugstore.user.dto.responce.UserGetResponse;
 import com.ssnhealthcare.drugstore.user.dto.responce.UserStatusResponseDTO;
 import com.ssnhealthcare.drugstore.user.service.UserService;
@@ -16,8 +17,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @AllArgsConstructor
 @RequestMapping("/user")
@@ -26,8 +25,8 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/create")
-    public ResponseEntity<UserCreateResponseDTO> createUser(
-            @Valid @RequestBody UserCreateRequestDTO dto) {
+    public ResponseEntity<UserResponseDTO> createUser(
+            @Valid @RequestBody UserRequestDTO dto) {
 
         return new ResponseEntity<>(
                 userService.createUser(dto),
@@ -36,28 +35,28 @@ public class UserController {
     }
 
     @PutMapping("/changePassword")
-    public ResponseEntity<String> changePassword(
+    public ResponseEntity<ChangePasswordResponse> changePassword(
             @RequestBody ChangePasswordRequestDTO dto) {
 
-        userService.changePassword(dto);
-        return ResponseEntity.ok("Password changed successfully");
+        ChangePasswordResponse response = userService.changePassword(dto);
+        return ResponseEntity.ok(response);
     }
 
 
     @PutMapping("/update/{id}")
-    public ResponseEntity<UserCreateResponseDTO> updateUser(
+    public ResponseEntity<UserResponseDTO> updateUser(
             @PathVariable Long id,
             @RequestBody UserUpdateRequestDTO dto) {
 
         return ResponseEntity.ok(userService.updateUser(id, dto));
    }
     @GetMapping("/getByUser/{id}")
-    public ResponseEntity<UserGetResponse> getUserById(@PathVariable Long id) {
+    public ResponseEntity<UserResponseDTO> getUserById(@PathVariable Long id) {
         return ResponseEntity.ok(userService.getUserById(id));
     }
 
     @GetMapping("/getall")
-    public ResponseEntity<Page<UserGetResponse>> getAllUsers(
+    public ResponseEntity<Page<UserResponseDTO>> getAllUsers(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "4") int size) {
 
