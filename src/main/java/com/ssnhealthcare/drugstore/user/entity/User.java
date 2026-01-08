@@ -29,7 +29,7 @@ public class User {
     private boolean active = true;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 30)
     private RoleType role;
 
 }

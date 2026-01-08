@@ -4,9 +4,9 @@ spring:
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/drug_store_management?createDatabaseIfNotExist=true
+    url: jdbc:mysql://localhost:3306/drug_store_management
     username: root
-    password: database
+    password: jebinlp007
 
   jpa:
     show-sql: true
@@ -16,3 +16,9 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+logging:
+  level:
+    org:
+      springframework:
+        security=DEBUG:
