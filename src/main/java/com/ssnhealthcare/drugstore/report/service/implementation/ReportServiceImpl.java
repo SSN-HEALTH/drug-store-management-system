@@ -16,6 +16,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -55,8 +56,8 @@ public class ReportServiceImpl implements ReportService {
 
         // Set available stock for each drug
         report.forEach(r -> {
-            inventoryRepository.findByDrug_DrugName(r.getDrugName())
-                    .ifPresent(inv -> r.setAvailableStock(inv.getQuantity()));
+            Integer stock = inventoryRepository.getAvailableStockByDrugName(r.getDrugName());
+            r.setAvailableStock(stock != null ? stock : 0);
         });
 
         // Pagination if needed
@@ -67,10 +68,8 @@ public class ReportServiceImpl implements ReportService {
     public Page<StockReportDto> generateStockReport()
     {
 
-        List<StockReportDto> report = inventoryRepository.getStockReport();
-
-        return paginate(report,DEFAULT_PAGE,DEFAULT_SIZE);
-
+        List<StockReportDto> report = inventoryRepository.generateStockReport();
+        return paginate(report, DEFAULT_PAGE, DEFAULT_SIZE);
     }
 
     @Override
