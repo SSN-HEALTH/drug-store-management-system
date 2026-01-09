@@ -40,7 +40,7 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
     // ---------- STOCK REPORT ----------
     @Query("""
 SELECT new com.ssnhealthcare.drugstore.report.Dto.StockReportDto(
-    d.drugName,  
+    d.drugName,
     i.batchNumber,
     i.quantity,
     COALESCE(SUM(CASE WHEN s.sale.status = 'COMPLETED' THEN s.quantity ELSE 0 END), 0)
