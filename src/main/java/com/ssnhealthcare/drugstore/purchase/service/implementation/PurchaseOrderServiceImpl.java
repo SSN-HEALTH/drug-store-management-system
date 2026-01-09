@@ -7,11 +7,14 @@ import com.ssnhealthcare.drugstore.distributor.repository.DistributorRepository;
 import com.ssnhealthcare.drugstore.exception.DistributorNotFoundException;
 import com.ssnhealthcare.drugstore.exception.InvalidPurchaseStateException;
 import com.ssnhealthcare.drugstore.exception.PurchaseNotFoundException;
+import com.ssnhealthcare.drugstore.exception.UserNotFoundException;
 import com.ssnhealthcare.drugstore.purchase.dto.Request.*;
 import com.ssnhealthcare.drugstore.purchase.dto.Response.*;
 import com.ssnhealthcare.drugstore.purchase.entity.PurchaseOrder;
 import com.ssnhealthcare.drugstore.purchase.repository.PurchaseOrderRepository;
 import com.ssnhealthcare.drugstore.purchase.service.PurchaseOrderService;
+import com.ssnhealthcare.drugstore.user.entity.User;
+import com.ssnhealthcare.drugstore.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -28,14 +31,13 @@ import java.util.UUID;
 
 @Service
 @AllArgsConstructor
-@Transactional
 public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 
     private final PurchaseOrderRepository purchaseOrderRepository;
     private final DistributorRepository distributorRepository;
+    private final UserRepository userRepository;
 
     @Override
-    @Transactional
     public Page<PurchaseResponseDTO> getAllPurchaseDetails(AllPurchaseDetailsRequestDTO dto) {
 
         Pageable pageable = PageRequest.of(
@@ -50,12 +52,21 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
     }
 
     @Override
+    @Transactional
     public PurchaseResponseDTO newPurchaseOrder(NewPurchaseOrderRequestDTO dto) {
+
+        User user = userRepository
+                .findById(dto.getCreatedBy())
+                .orElseThrow(() ->
+                        new UserNotFoundException("User not found"));
 
         Distributor distributor = distributorRepository
                 .findById(dto.getDistributorId())
                 .orElseThrow(() ->
                         new DistributorNotFoundException("Distributor not found"));
+
+
+
 
         if (distributor.getStatus() != DistributorStatus.ACTIVE) {
             throw new InvalidPurchaseStateException(
@@ -69,42 +80,44 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 
         PurchaseOrder purchase = new PurchaseOrder();
         purchase.setDistributorId(distributor);
+        purchase.setCreatedBy(user);
         purchase.setOrderDateTime(dto.getOrderDateTime());
         purchase.setStatus(PurchaseStatus.CREATED);
         purchase.setOrderAmount(BigDecimal.ZERO);
-        purchase.setInvoiceNumber(generateAccountNumber()); // invoice later
+        purchase.setInvoiceNumber(generateInvoiceNumber()); // invoice later
 
         return mapToResponse(purchaseOrderRepository.save(purchase));
     }
 
 
-    private String generateAccountNumber() {
+    private String generateInvoiceNumber() {
         return String.valueOf(Math.abs(UUID.randomUUID().getMostSignificantBits())).substring(0, 10);
     }
 
     @Override
     @Transactional
     public PurchaseResponseDTO purchaseOrderById(
-            PurchaseOrderRequestDTO dto) {
+            Long id) {
 
         PurchaseOrder purchase = purchaseOrderRepository
-                .findById(dto.getPurchaseOrderId())
+                .findById(id)
                 .orElseThrow(() ->
                         new PurchaseNotFoundException(
-                                "Purchase does not exist with id " + dto.getPurchaseOrderId()));
+                                "Purchase does not exist with id " + id));
 
         return mapToResponse(purchase);
     }
 
     @Override
+    @Transactional
     public PurchaseResponseDTO cancelOrderById(
-            PurchaseOrderCancelRequestDTO dto) {
+            Long id) {
 
         PurchaseOrder purchase = purchaseOrderRepository
-                .findById(dto.getPurchaseOrderId())
+                .findById(id)
                 .orElseThrow(() ->
                         new PurchaseNotFoundException(
-                                "Purchase does not exist with id " + dto.getPurchaseOrderId()));
+                                "Purchase does not exist with id " + id));
 
         if (purchase.getStatus() == PurchaseStatus.COMPLETED) {
             throw new InvalidPurchaseStateException(

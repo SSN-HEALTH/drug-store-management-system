@@ -11,6 +11,7 @@ import com.ssnhealthcare.drugstore.exception.InvalidDistributorException;
 import com.ssnhealthcare.drugstore.distributor.repository.DistributorRepository;
 import com.ssnhealthcare.drugstore.distributor.service.DistributorService;
 import com.ssnhealthcare.drugstore.purchase.repository.PurchaseOrderRepository;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -57,7 +58,7 @@ public class DistributorServiceImpl implements DistributorService {
 
     public DistributorResponseDTO updateDistributor(
             Long distributorId,
-            DistributorRequestDTO dto) {
+            @Valid CreateDistributorRequestDTO dto) {
 
         Distributor distributor = distributorRepository
                 .findById(distributorId)
@@ -104,16 +105,8 @@ public class DistributorServiceImpl implements DistributorService {
                 Sort.by("distributorName").ascending()
         );
 
-        Page<Distributor> distributors;
-
-        if (dto.getStatus() != null) {
-            distributors =
-                    distributorRepository.findByStatus(
-                            dto.getStatus(), pageable);
-        } else {
-            distributors =
-                    distributorRepository.findAll(pageable);
-        }
+        Page<Distributor> distributors =
+                distributorRepository.findAll(pageable);
 
         return distributors.map(this::mapToResponse);
     }
@@ -127,15 +120,14 @@ public class DistributorServiceImpl implements DistributorService {
                         new DistributorNotFoundException(
                                 "Distributor not found with id " + id));
 
-
         if (distributor.getStatus() == DistributorStatus.INACTIVE) {
             throw new InvalidDistributorException(
                     "Distributor is already inactive");
         }
-        
+
         boolean hasActivePurchases =
                 purchaseOrderRepository
-                        .existsByDistributorIdAndStatus(
+                        .existsByDistributorId_DistributorIdAndStatus(
                                 id,
                                 PurchaseStatus.CREATED);
 
@@ -144,9 +136,7 @@ public class DistributorServiceImpl implements DistributorService {
                     "Distributor cannot be deactivated while active purchases exist");
         }
 
-
         distributor.setStatus(DistributorStatus.INACTIVE);
-
 
         Distributor updated =
                 distributorRepository.save(distributor);

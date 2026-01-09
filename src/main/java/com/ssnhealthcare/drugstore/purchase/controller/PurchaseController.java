@@ -4,6 +4,7 @@ import com.ssnhealthcare.drugstore.purchase.dto.Request.*;
 import com.ssnhealthcare.drugstore.purchase.dto.Response.*;
 import com.ssnhealthcare.drugstore.purchase.service.PurchaseOrderService;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,6 +13,8 @@ import java.time.LocalDate;
 import java.util.List;
 
 @RestController
+@AllArgsConstructor
+@RequestMapping("/purchase")
 public class PurchaseController {
 
     private PurchaseOrderService purchaseOrderService;
@@ -34,22 +37,22 @@ public class PurchaseController {
     }
 
     @GetMapping("/purchase/{id}")
-    public ResponseEntity<PurchaseResponseDTO> getPurchaseById(@Valid @RequestBody PurchaseOrderRequestDTO dto){
-        PurchaseResponseDTO response = purchaseOrderService.purchaseOrderById(dto);
+    public ResponseEntity<PurchaseResponseDTO> getPurchaseById(@PathVariable Long id){
+        PurchaseResponseDTO response = purchaseOrderService.purchaseOrderById(id);
 
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/purchase/{id}/cancel")
-    public ResponseEntity <PurchaseResponseDTO> cancelPurchaseById(@Valid @RequestBody PurchaseOrderCancelRequestDTO dto) {
-        PurchaseResponseDTO response = purchaseOrderService.cancelOrderById(dto);
+    public ResponseEntity <PurchaseResponseDTO> cancelPurchaseById(@PathVariable Long id) {
+        PurchaseResponseDTO response = purchaseOrderService.cancelOrderById(id);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/purchaseByDates")
     public ResponseEntity<Page<PurchaseResponseDTO>>
     getPurchasesBetweenDates(
-            @Valid @ModelAttribute PurchaseBetweenDatesRequestDTO dto) {
+            @Valid @RequestBody PurchaseBetweenDatesRequestDTO dto) {
 
         Page<PurchaseResponseDTO> response =
                 purchaseOrderService.getPurchaseBetweenDates(dto);

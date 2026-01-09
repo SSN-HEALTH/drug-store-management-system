@@ -15,9 +15,9 @@ public interface PurchaseOrderService {
 
     PurchaseResponseDTO newPurchaseOrder(NewPurchaseOrderRequestDTO dto);
 
-    PurchaseResponseDTO purchaseOrderById(PurchaseOrderRequestDTO dto);
+    PurchaseResponseDTO purchaseOrderById(Long id);
 
-    PurchaseResponseDTO cancelOrderById(PurchaseOrderCancelRequestDTO dto);
+    PurchaseResponseDTO cancelOrderById(Long id);
 
     Page<PurchaseResponseDTO> getPurchaseBetweenDates(PurchaseBetweenDatesRequestDTO dto);
 

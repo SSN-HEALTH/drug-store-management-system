@@ -49,8 +49,7 @@ public class PurchaseOrder {
     @Column(name = "status", nullable = false, length = 20)
     private PurchaseStatus status;
 
-    @NotBlank (message = "Order amount cannot be blank")
-    @Positive (message = "Order amount cannot be negative or Zero")
+//    @Positive (message = "Order amount cannot be negative or Zero")
     private BigDecimal orderAmount;
 
     @OneToMany(

@@ -5,16 +5,19 @@ import com.ssnhealthcare.drugstore.distributor.dto.request.DistributorRequestDTO
 import com.ssnhealthcare.drugstore.distributor.dto.response.DistributorResponseDTO;
 import com.ssnhealthcare.drugstore.distributor.service.DistributorService;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@AllArgsConstructor
+@RequestMapping("/distributor")
 public class DistributorController {
 
     private DistributorService distributorService;
 
-    @PostMapping("/api/distributors")
+    @PostMapping("/createDistributor")
     public ResponseEntity <DistributorResponseDTO> createDistributor(@Valid @RequestBody CreateDistributorRequestDTO dto){
 
         DistributorResponseDTO response = distributorService.createDistributor(dto);
@@ -22,23 +25,24 @@ public class DistributorController {
 
     }
 
-    @PutMapping("/api/distributors/{id}")
-    public ResponseEntity <DistributorResponseDTO> updateDistributor(@Valid @RequestBody Long id, DistributorRequestDTO dto) {
+    @PutMapping("/updateDistributor/{id}")
+    public ResponseEntity <DistributorResponseDTO> updateDistributor(@PathVariable Long id,
+                                                     @Valid @RequestBody CreateDistributorRequestDTO dto) {
 
         DistributorResponseDTO response = distributorService.updateDistributor(id, dto);
         return ResponseEntity.ok(response);
 
     }
 
-    @GetMapping ("/api/distributors/{id}")
-    public ResponseEntity <DistributorResponseDTO> getDistributorById(@Valid @RequestBody Long id) {
+    @GetMapping ("/getById/{id}")
+    public ResponseEntity <DistributorResponseDTO> getDistributorById(@PathVariable Long id) {
 
         DistributorResponseDTO response = distributorService.getDistributorById(id);
         return ResponseEntity.ok(response);
 
     }
 
-    @GetMapping ("/api/distributors")
+    @GetMapping ("/getAll")
     public ResponseEntity<Page<DistributorResponseDTO>>
     listDistributors(@Valid @RequestBody DistributorRequestDTO dto) {
 
@@ -46,11 +50,12 @@ public class DistributorController {
         return ResponseEntity.ok(response);
     }
 
-    @PatchMapping ("/api/distributors/{id}/deactivate")
+    @DeleteMapping("/{id}/deactivate")
     public ResponseEntity<DistributorResponseDTO>
     deactivateDistributor(@PathVariable Long id) {
 
-        DistributorResponseDTO response = distributorService.deactivateDistributor(id);
+        DistributorResponseDTO response =
+                distributorService.deactivateDistributor(id);
 
         return ResponseEntity.ok(response);
     }
