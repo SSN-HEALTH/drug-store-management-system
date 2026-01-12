@@ -25,15 +25,6 @@ public interface SaleRepository extends JpaRepository<Sale,Long>
             LocalDateTime to,
             Pageable pageable);
 
-    @Query("""
-        SELECT COALESCE(SUM(s.totalAmount), 0)
-        FROM Sale s
-        WHERE s.status = 'COMPLETED'
-          AND s.saleDate BETWEEN :from AND :to
-    """)
-    BigDecimal getTotalRevenue(
-            @Param("from") LocalDateTime from,
-            @Param("to") LocalDateTime to);
 
     @Query("""
         SELECT COALESCE(SUM(s.totalAmount), 0)

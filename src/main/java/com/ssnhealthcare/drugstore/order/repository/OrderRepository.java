@@ -27,15 +27,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     Page<Order> findByProcessedBy_UserId(Long userId, Pageable pageable);
 
 
-    @Query("""
-                SELECT COUNT(s)
-                FROM Sale s
-                WHERE s.status = 'COMPLETED'
-                  AND s.saleDate BETWEEN :from AND :to
-            """)
-    Long countCompletedOrders(
-            @Param("from") LocalDateTime from,
-            @Param("to") LocalDateTime to);
+
 
     @Query("""
                 SELECT new com.ssnhealthcare.drugstore.dashboard.dto.RecentOrderDto(

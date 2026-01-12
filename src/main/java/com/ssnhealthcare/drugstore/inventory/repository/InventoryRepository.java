@@ -59,24 +59,6 @@ GROUP BY i.inventoryId, d.drugName, i.batchNumber, i.quantity
         WHERE i.drug.drugName = :drugName
     """)
     Integer getAvailableStockByDrugName(@Param("drugName") String drugName);
-    @Query("SELECT COUNT(i) FROM Inventory i")
-
-    long countAll();
-    @Query("""
-    SELECT COUNT(i)
-    FROM Inventory i
-    WHERE i.expiryDate <= :date
-    AND i.quantity > 0
-""")
-
-    long countDrugsNearExpiry(@Param("date") LocalDate localDate);
-    @Query("""
-    SELECT COUNT(i)
-    FROM Inventory i
-    WHERE i.quantity < i.reorderLevel
-""")
-
-    long countDrugsBelowReorderPoint();
 
     //Total stock quantity
     @Query("""
