@@ -6,7 +6,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/drug_store_management?createDatabaseIfNotExist=true
     username: root
-    password: database
+    password: Vijay@09
 
   jpa:
     show-sql: true
@@ -16,3 +16,21 @@ spring:
     properties:
       hibernate:
         format_sql: true
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ssnhealthcare1@gmail.com
+    password: dhrdbgxymsitbozd
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+
+  alert:
+    email:
+      recipients:
+        - admin@ssnhealthcare.com
+        - stockmanager@ssnhealthcare.com
