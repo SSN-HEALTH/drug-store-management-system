@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -33,4 +34,18 @@ public interface SaleRepository extends JpaRepository<Sale,Long>
     BigDecimal getTotalRevenue(
             @Param("from") LocalDateTime from,
             @Param("to") LocalDateTime to);
+
+    @Query("""
+        SELECT COALESCE(SUM(s.totalAmount), 0)
+        FROM Sale s
+        WHERE s.saleDate BETWEEN :startDate AND :endDate
+        AND s.status = :status
+    """)
+    BigDecimal calculateTotalSales(
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate,
+            @Param("status") OrderStatus status
+    );
+
+
 }

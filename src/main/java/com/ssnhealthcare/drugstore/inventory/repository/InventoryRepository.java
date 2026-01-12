@@ -59,4 +59,54 @@ GROUP BY i.inventoryId, d.drugName, i.batchNumber, i.quantity
         WHERE i.drug.drugName = :drugName
     """)
     Integer getAvailableStockByDrugName(@Param("drugName") String drugName);
+    @Query("SELECT COUNT(i) FROM Inventory i")
+
+    long countAll();
+    @Query("""
+    SELECT COUNT(i)
+    FROM Inventory i
+    WHERE i.expiryDate <= :date
+    AND i.quantity > 0
+""")
+
+    long countDrugsNearExpiry(@Param("date") LocalDate localDate);
+    @Query("""
+    SELECT COUNT(i)
+    FROM Inventory i
+    WHERE i.quantity < i.reorderLevel
+""")
+
+    long countDrugsBelowReorderPoint();
+
+    //Total stock quantity
+    @Query("""
+        SELECT COALESCE(SUM(i.quantity), 0)
+        FROM Inventory i
+    """)
+    long getTotalStockQuantity();
+
+    //Low stock (quantity <= reorder level but > 0)
+    @Query("""
+        SELECT COUNT(i)
+        FROM Inventory i
+        WHERE i.quantity > 0
+          AND i.quantity <= i.reorderLevel
+    """)
+    long getLowStockCount();
+
+    //Out of stock
+    @Query("""
+        SELECT COUNT(i)
+        FROM Inventory i
+        WHERE i.quantity = 0
+    """)
+    long getOutOfStockCount();
+
+    //Near expiry (next X days)
+    @Query("""
+        SELECT COUNT(i)
+        FROM Inventory i
+        WHERE i.expiryDate BETWEEN CURRENT_DATE AND :nearExpiryDate
+    """)
+    long getNearExpiryCount(@Param("nearExpiryDate") LocalDate nearExpiryDate);
 }
