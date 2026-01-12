@@ -165,7 +165,4 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.NOT_ACCEPTABLE);
     }
 
-
-
-
 }

@@ -1,7 +1,6 @@
 package com.ssnhealthcare.drugstore.order.dto.DtoResponse;
 
 import com.ssnhealthcare.drugstore.common.enums.OrderStatus;
-import com.ssnhealthcare.drugstore.order.dto.DtoRequest.OrderItemRequestDto;
 import lombok.Data;
 
 import java.math.BigDecimal;
