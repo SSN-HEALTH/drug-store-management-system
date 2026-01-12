@@ -59,4 +59,17 @@ GROUP BY i.inventoryId, d.drugName, i.batchNumber, i.quantity
         WHERE i.drug.drugName = :drugName
     """)
     Integer getAvailableStockByDrugName(@Param("drugName") String drugName);
+
+    // LOW STOCK
+    @Query("""
+        SELECT i FROM Inventory i
+        WHERE i.quantity <= i.reorderLevel
+    """)
+    List<Inventory> findLowStock();
+
+    // NEAR EXPIRY + EXPIRED
+    List<Inventory> findByExpiryDateBeforeAndQuantityGreaterThan(
+            LocalDate date,
+            Integer quantity
+    );
 }

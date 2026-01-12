@@ -1,10 +1,11 @@
 package com.ssnhealthcare.drugstore.exception;
 
 import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
+import lombok.Data;
 
 import java.time.LocalDateTime;
 @AllArgsConstructor
+@Data
 public class ApiErrorResponse {
 
     private LocalDateTime timeStamp;

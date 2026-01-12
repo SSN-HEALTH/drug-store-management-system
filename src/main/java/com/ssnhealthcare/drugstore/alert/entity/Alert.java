@@ -7,29 +7,33 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Entity
-@Data
 @Table(name = "alerts")
+@Data
 public class Alert {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
     private Long id;
 
-    @Column(name = "drug_id", nullable = false, updatable = false)
-    private Long drugId;
+    // Can be drugId / orderId etc.
+    @Column(name = "reference_id", nullable = false)
+    private Long referenceId;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "alert_type", nullable = false, length = 30)
+    @Column(name = "alert_type", nullable = false)
     private AlertType alertType;
 
-    @Column(name = "message", nullable = false, length = 200)
+    @Column(nullable = false, length = 255)
     private String message;
 
-    @Column(name = "is_resolved", nullable = false)
+    @Column(nullable = false)
     private boolean resolved = false;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
-}
 
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
+}

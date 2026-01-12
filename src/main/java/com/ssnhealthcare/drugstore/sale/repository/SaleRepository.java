@@ -33,4 +33,6 @@ public interface SaleRepository extends JpaRepository<Sale,Long>
     BigDecimal getTotalRevenue(
             @Param("from") LocalDateTime from,
             @Param("to") LocalDateTime to);
+
+    List<Sale> findByStatus(OrderStatus status);
 }
