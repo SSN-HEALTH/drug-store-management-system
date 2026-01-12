@@ -1,6 +1,7 @@
 package com.ssnhealthcare.drugstore.order.repository;
 
 import com.ssnhealthcare.drugstore.common.enums.OrderStatus;
+import com.ssnhealthcare.drugstore.dashboard.dto.RecentOrderDto;
 import com.ssnhealthcare.drugstore.order.entity.Order;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -27,12 +28,28 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
 
     @Query("""
-        SELECT COUNT(s)
-        FROM Sale s
-        WHERE s.status = 'COMPLETED'
-          AND s.saleDate BETWEEN :from AND :to
-    """)
+                SELECT COUNT(s)
+                FROM Sale s
+                WHERE s.status = 'COMPLETED'
+                  AND s.saleDate BETWEEN :from AND :to
+            """)
     Long countCompletedOrders(
             @Param("from") LocalDateTime from,
             @Param("to") LocalDateTime to);
+
+    @Query("""
+                SELECT new com.ssnhealthcare.drugstore.dashboard.dto.RecentOrderDto(
+                    o.orderId,
+                    o.status,
+                    o.totalAmount,
+                    o.orderDate
+                )
+                FROM Order o
+                WHERE o.orderDate >= :fromDate
+                ORDER BY o.orderDate DESC
+            """)
+    Page<RecentOrderDto> findRecentOrders(@Param("fromDate") LocalDateTime fromDate, Pageable pageable);
+
+    Long countByStatusAndOrderDateBetween(OrderStatus status, LocalDateTime start, LocalDateTime end);
+
 }

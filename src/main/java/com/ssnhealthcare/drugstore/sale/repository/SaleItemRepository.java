@@ -1,11 +1,13 @@
 package com.ssnhealthcare.drugstore.sale.repository;
 
+import com.ssnhealthcare.drugstore.common.enums.OrderStatus;
 import com.ssnhealthcare.drugstore.report.Dto.SalesReportDto;
 import com.ssnhealthcare.drugstore.sale.entity.SaleItem;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -35,15 +37,30 @@ public interface SaleItemRepository extends JpaRepository<SaleItem,Long>
     """)
     List<SalesReportDto> getSalesReport(@Param("fromDate") LocalDateTime fromDate,
                                         @Param("toDate") LocalDateTime toDate);
+    // TOTAL ITEMS SOLD
     @Query("""
         SELECT COALESCE(SUM(si.quantity), 0)
         FROM SaleItem si
         JOIN si.sale s
-        WHERE s.status = 'COMPLETED'
-          AND s.saleDate BETWEEN :from AND :to
+        WHERE s.status = :status
+        AND s.saleDate BETWEEN :fromDate AND :toDate
     """)
-    Long getTotalItemsSold(
-            @Param("from") LocalDateTime from,
-            @Param("to") LocalDateTime to);
+    Long sumQuantityByOrderStatusAndDate(
+            @Param("status") OrderStatus status,
+            @Param("fromDate") LocalDateTime fromDate,
+            @Param("toDate") LocalDateTime toDate
+    );
 
+    @Query("""
+    SELECT COALESCE(SUM(si.quantity * si.price), 0)
+    FROM SaleItem si
+    JOIN si.sale s
+    WHERE s.status = :status
+    AND s.saleDate BETWEEN :fromDate AND :toDate
+""")
+    BigDecimal sumRevenueByOrderStatusAndDate(
+            OrderStatus status,
+            LocalDateTime fromDate,
+            LocalDateTime toDate
+    );
 }
