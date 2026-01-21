@@ -1,10 +1,13 @@
 package com.ssnhealthcare.drugstore.scheduler.email;
 
+import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -12,28 +15,38 @@ public class EmailService {
 
     private final JavaMailSender mailSender;
 
-    @Value("${alert.email.recipients:}")
-    private String[] recipients;
+    @Value("${spring.mail.username}")
+    private String from;
 
-    public void sendStockAlertEmail(String body) {
-        send("Daily Stock Alerts – SSN Healthcare", body);
+    public void sendStockAlertEmail(List<String> recipients, String body) {
+        send("Daily Stock Alerts – SSN Healthcare", recipients, body);
     }
 
-    public void sendPendingOrderEmail(String body) {
-        send("Pending Orders Alert – SSN Healthcare", body);
+    public void sendPendingOrderEmail(List<String> recipients, String body) {
+        send("Pending Orders Alert – SSN Healthcare", recipients, body);
     }
 
-    private void send(String subject, String body) {
+    private void send(String subject, List<String> recipients, String body) {
 
-        if (recipients == null || recipients.length == 0) {
-            return; // fail-safe
+        if (recipients == null || recipients.isEmpty()) {
+            return;
         }
 
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(recipients);
-        message.setSubject(subject);
-        message.setText(body);
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper =
+                    new MimeMessageHelper(message, false, "UTF-8");
 
-        mailSender.send(message);
+            helper.setFrom(from);
+            helper.setTo(recipients.toArray(new String[0]));
+            helper.setSubject(subject);
+            helper.setText(body, false);
+
+            mailSender.send(message);
+            System.out.println("Alert mail sent to " + recipients.size() + " users");
+
+        } catch (Exception e) {
+            throw new RuntimeException("Email sending failed", e);
+        }
     }
 }

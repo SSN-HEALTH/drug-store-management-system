@@ -2,6 +2,7 @@ package com.ssnhealthcare.drugstore.alert.controller;
 
 import com.ssnhealthcare.drugstore.alert.dto.AlertResponseDTO;
 import com.ssnhealthcare.drugstore.alert.service.AlertService;
+import com.ssnhealthcare.drugstore.scheduler.email.EmailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 public class AlertController {
 
     private final AlertService alertService;
+    private final EmailService emailService;
 
     @GetMapping("/getAlerts")
     public ResponseEntity<Page<AlertResponseDTO>> getActiveAlerts(
@@ -27,4 +29,5 @@ public class AlertController {
         alertService.resolveAlert(id);
         return ResponseEntity.noContent().build();
     }
+
 }

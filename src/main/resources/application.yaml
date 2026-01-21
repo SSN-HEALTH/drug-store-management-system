@@ -12,25 +12,20 @@ spring:
     show-sql: true
     hibernate:
       ddl-auto: update
-    database-platform: org.hibernate.dialect.MySQLDialect
-    properties:
-      hibernate:
-        format_sql: true
+
   mail:
     host: smtp.gmail.com
     port: 587
     username: ssnhealthcare1@gmail.com
-    password: dhrdbgxymsitbozd
+    password: oalykyfuphdsrodb
     properties:
       mail:
         smtp:
           auth: true
           starttls:
             enable: true
-
-
-  alert:
-    email:
-      recipients:
-        - admin@ssnhealthcare.com
-        - stockmanager@ssnhealthcare.com
+          ssl:
+            trust: smtp.gmail.com
+          connection-timeout: 5000
+          timeout: 5000
+          write-timeout: 5000

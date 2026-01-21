@@ -7,13 +7,13 @@ import java.time.LocalDate;
 
 public interface AlertService {
 
-    void createLowStockAlert(Long drugId, String drugName, Integer quantity);
+    boolean createLowStockAlert(Long drugId, String drugName, Integer quantity);
 
-    void createNearExpiryAlert(Long drugId, String drugName, LocalDate expiryDate);
+    boolean createNearExpiryAlert(Long drugId, String drugName, LocalDate expiryDate);
 
-    void createExpiredAlert(Long drugId, String drugName, LocalDate expiryDate);
+    boolean createExpiredAlert(Long drugId, String drugName, LocalDate expiryDate);
 
-    void createPendingOrderAlert(Long orderId);
+    boolean createPendingOrderAlert(Long orderId);
 
     Page<AlertResponseDTO> getActiveAlerts(int page, int size);
 

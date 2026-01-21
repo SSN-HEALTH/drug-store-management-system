@@ -21,55 +21,59 @@ public class AlertServiceImpl implements AlertService {
     private final AlertRepository alertRepository;
 
     @Override
-    public void createLowStockAlert(Long drugId, String drugName, Integer quantity) {
+    public boolean createLowStockAlert(Long drugId, String drugName, Integer quantity) {
 
         if (alertRepository.existsByReferenceIdAndAlertTypeAndResolvedFalse(
-                drugId, AlertType.LOW_STOCK)) return;
+                drugId, AlertType.LOW_STOCK)) return false;
 
         saveAlert(
                 drugId,
                 AlertType.LOW_STOCK,
                 "Low stock for drug: " + drugName + " | Available: " + quantity
         );
+        return true;
     }
 
     @Override
-    public void createNearExpiryAlert(Long drugId, String drugName, LocalDate expiryDate) {
+    public boolean createNearExpiryAlert(Long drugId, String drugName, LocalDate expiryDate) {
 
         if (alertRepository.existsByReferenceIdAndAlertTypeAndResolvedFalse(
-                drugId, AlertType.NEAR_EXPIRY)) return;
+                drugId, AlertType.NEAR_EXPIRY)) return false;
 
         saveAlert(
                 drugId,
                 AlertType.NEAR_EXPIRY,
                 "Drug nearing expiry: " + drugName + " | Expiry: " + expiryDate
         );
+        return true;
     }
 
     @Override
-    public void createExpiredAlert(Long drugId, String drugName, LocalDate expiryDate) {
+    public boolean createExpiredAlert(Long drugId, String drugName, LocalDate expiryDate) {
 
         if (alertRepository.existsByReferenceIdAndAlertTypeAndResolvedFalse(
-                drugId, AlertType.EXPIRED)) return;
+                drugId, AlertType.EXPIRED)) return false;
 
         saveAlert(
                 drugId,
                 AlertType.EXPIRED,
                 "Drug expired: " + drugName + " | Expired on: " + expiryDate
         );
+        return true;
     }
 
     @Override
-    public void createPendingOrderAlert(Long orderId) {
+    public boolean createPendingOrderAlert(Long orderId) {
 
         if (alertRepository.existsByReferenceIdAndAlertTypeAndResolvedFalse(
-                orderId, AlertType.PENDING_ORDER)) return;
+                orderId, AlertType.PENDING_ORDER)) return false;
 
         saveAlert(
                 orderId,
                 AlertType.PENDING_ORDER,
                 "Order ID " + orderId + " is pending"
         );
+        return true;
     }
 
     @Override
@@ -79,7 +83,7 @@ public class AlertServiceImpl implements AlertService {
                 PageRequest.of(page, size, Sort.by("createdAt").descending());
 
         return alertRepository.findByResolvedFalse(pageable)
-                .map(this::mapToDTO);
+                .map(this::mapToResponse);
     }
 
     @Override
@@ -103,7 +107,7 @@ public class AlertServiceImpl implements AlertService {
         alertRepository.save(alert);
     }
 
-    private AlertResponseDTO mapToDTO(Alert alert) {
+    private AlertResponseDTO mapToResponse(Alert alert) {
 
         AlertResponseDTO dto = new AlertResponseDTO();
         dto.setId(alert.getId());

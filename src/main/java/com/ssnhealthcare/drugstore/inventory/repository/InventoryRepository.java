@@ -92,16 +92,29 @@ GROUP BY i.inventoryId, d.drugName, i.batchNumber, i.quantity
     """)
     long getNearExpiryCount(@Param("nearExpiryDate") LocalDate nearExpiryDate);
 
+    // EXPIRED
+    @Query("""
+    SELECT i FROM Inventory i
+    WHERE i.expiryDate < :today AND i.quantity > 0
+""")
+    List<Inventory> findExpired(@Param("today") LocalDate today);
+
+    // NEAR EXPIRY
+    @Query("""
+    SELECT i FROM Inventory i
+    WHERE i.expiryDate BETWEEN :start AND :end AND i.quantity > 0
+""")
+    List<Inventory> findNearExpiry(
+            @Param("start") LocalDate start,
+            @Param("end") LocalDate end
+    );
+
     // LOW STOCK
     @Query("""
-        SELECT i FROM Inventory i
-        WHERE i.quantity <= i.reorderLevel
-    """)
-    List<Inventory> findLowStock();
-
-    // NEAR EXPIRY + EXPIRED
-    List<Inventory> findByExpiryDateBeforeAndQuantityGreaterThan(
-            LocalDate date,
-            Integer quantity
-    );
+    SELECT i FROM Inventory i
+    WHERE i.quantity > 0
+      AND i.quantity <= i.reorderLevel
+      AND i.expiryDate >= :today
+""")
+    List<Inventory> findLowStock(@Param("today") LocalDate today);
 }
