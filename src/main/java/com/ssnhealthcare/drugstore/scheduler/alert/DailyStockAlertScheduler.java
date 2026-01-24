@@ -24,7 +24,7 @@ public class DailyStockAlertScheduler {
     private final EmailService emailService;
     private final AlertRecipientService recipientService;
 
-    @Scheduled(cron = "*/20 * * * * ?")   // every 2 minutes
+    @Scheduled(cron = "0 0 0/1 * * ?")  // every 1 hour
     public void generateDailyAlerts() {
 
         LocalDate today = LocalDate.now();
